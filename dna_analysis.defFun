@@ -1,25 +1,30 @@
 #!/bin/bash
-echo "test"
-function echoHead(){   # print with bold and red font
+
+# print with bold and red font
+function echoHead(){
 	echo -e "\033[1;31m$1\033[0m"
 }
 
-function  echoInfo(){    # print $2 with orange font
+# print $2 with orange font
+function  echoInfo(){
 	echo -e "$1 [\033[33m $2\033[0m ]"
 }
 
-function echoGreen(){  # print with green font
+# print with green font
+function echoGreen(){
 	echo -e "\033[32m $1\033[0m\\c"
 }
 
-function echoRed(){  # print with red font
+# print with red font
+function echoRed(){
 	echo -e "\033[31m $1\033[0m\\c"
 }
+
 function echoRG(){
 	tag=0;
 	for i in "$@"
 	do
-		if [ $tag -eq "0" ];then 
+		if [ $tag -eq "0" ];then
 			echo -e "\033[1;31m $i \033[0m\\c"
 			tag=1
 		else
@@ -28,6 +33,8 @@ function echoRG(){
 		fi
 	done
 }
+
+# define the necessary reference files in different steps
 function defineRef(){
 	fastq_ref=($bwa_index_base $bwa)
 	sortBam_ref=($picard $samtools)
@@ -37,7 +44,7 @@ function defineRef(){
 	varCall_ref=($gatk $reference $dbsnp)
 }
 
-
+# check the existense of input files
 function checkFile(){
 	if [ $verbose = "Yes" ];then
 		echo -e "\033[1;3;34m-------------------------------------------\\n| File |\\t\\t\\t| Exist? |\\n-------------------------------------------\033[0m"
@@ -60,6 +67,8 @@ function checkFile(){
 		 echo -e "-------------------------------------------"
 	fi
 }
+
+# checking whether parameters were given correctly
 function checkPara(){
 	if [ $verbose = "Yes" ];then
 		echo -e "\033[1;3;34m-------------------------------------------\\n| Paras |\\t\\t\\t| Defined? |\\n-------------------------------------------\033[0m"
@@ -83,10 +92,12 @@ function checkPara(){
 	fi
 }
 
+# delete temportial files
 function delFile(){
 	if [ -s "$1" ]&&[ "$keepFile" = "No" ]&&[ $2 != $oriFile ];then rm $3;fi
 }
 
+# defined the last step
 function allDone(){
 	if [ $endStep = $1 ];then echo -e "All done!";exit 0; fi
 }

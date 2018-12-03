@@ -1,6 +1,6 @@
 #!/bin/bash  -e
 
-echo $bwa_index_base
+
 ## Aligning
 if [ $startStep = "fastq" ];then
 	echo -e  [`date`]\\tStart alignment and sorting...
@@ -15,20 +15,21 @@ if [ $startStep = "fastq" ];then
 fi
 allDone fastq
 
-## Sorting and indexing
+## Sorting and Indexing
 if [ $startStep = "sortBam" ];then
-	echo -e [`date`]\\tStart sorting bam file...
-	
-	java -jar $picard SortSam  \
-		INPUT=$input  \
-		OUTPUT=$sampleName.sorted.bam  \
-		SORT_ORDER=coordinate > $PWD/log/$sampleName"_"$processDay"_"sort.log 2>&1 \
-	|| (echo -e "ERROR occurred while sorting bam file, please check $PWD/log/${sampleName}_${processDay}_sort.log\\n";exit -1)
+	echo -e [`date`]\\tStart sorting and indexing bam file...
+	#java -jar $picard SortSam  \
+	#	INPUT=$input  \
+	#	OUTPUT=$sampleName.sorted.bam  \
+	#	SORT_ORDER=coordinate > $PWD/log/$sampleName"_"$processDay"_"sort.log 2>&1 \
+	#|| (echo -e "ERROR occurred while sorting bam file, please check $PWD/log/${sampleName}_${processDay}_sort.log\\n";exit -1)
 
-	echo -e [`date`]\\tFinished sorting and start indexing bam file...
-
-	$samtools index  $sampleName.sorted.bam   > $PWD/log/${sampleName}_${processDay}_index.log 2>&1  \
-	|| ( echo -e "ERROR occurred while indexing bam file, please check $PWD/log/${sampleName}_${processDay}_index.log\\n";exit -1)
+	$gatk SortSam  \
+	 --INPUT $input \
+	 --OUTPUT $sampleName.sorted.bam  \
+	 --SORT_ORDER coordinate \
+	 --CREATE_INDEX > $PWD/log/$sampleName"_"$processDay"_"sort.log 2>&1 \
+	 || (echo -e "ERROR occurred while sorting bam file, please check $PWD/log/${sampleName}_${processDay}_sort.log\\n";exit -1)
 
 	echo -e [`date`]\\tFinished sorting and indexing
 	delFile $sampleName.sorted.bam   $input  $input
@@ -37,24 +38,32 @@ if [ $startStep = "sortBam" ];then
 fi
 allDone sortBam
 
-## mark duplication
+## Mark Duplication
 if [ $startStep = "markDup" ];then
+
 	if [ -s $input.bai ]&&[ -s ${input//.bam/.bai} ];then echo -e [`date`]\\tStart indexing bam...
 		$samtools index  $sampleName.sorted.bam   > $PWD/log/${sampleName}_${processDay}_index.log 2>&1  \
 		|| ( echo -e "ERROR occurred while indexing bam file, please check $PWD/log/${sampleName}_${processDay}_index.log\\n";exit -1)
 	fi
-	
+
 	echo -e [`date`]\\tStarting mark duplication...
-	
-	java  -jar $picard MarkDuplicates \
-		INPUT=$input \
-		OUTPUT=$sampleName.sorted.dedup.bam \
-		METRICS_FILE=$sampleName.duplicates \
-		REMOVE_DUPLICATES=TRUE  \
-		ASSUME_SORTED=TRUE \
-		VALIDATION_STRINGENCY=LENIENT \
-		CREATE_INDEX=TRUE  > $PWD/log/${sampleName}_${processDay}_dedup.log 2>&1 \
-	|| ( echo -e "ERROR occurred while marking duplication, please check $PWD/log/${sampleName}_${processDay}_dedup.log\\n";exit -1)
+
+	#java  -jar $picard MarkDuplicates \
+	#	INPUT=$input \
+	#	OUTPUT=$sampleName.sorted.dedup.bam \
+	#	METRICS_FILE=$sampleName.duplicates \
+	#	REMOVE_DUPLICATES=TRUE  \
+	#	ASSUME_SORTED=TRUE \
+	#	VALIDATION_STRINGENCY=LENIENT \ # deprecated parameter
+	#	CREATE_INDEX=TRUE  > $PWD/log/${sampleName}_${processDay}_dedup.log 2>&1 \
+	#|| ( echo -e "ERROR occurred while marking duplication, please check $PWD/log/${sampleName}_${processDay}_dedup.log\\n";exit -1)
+
+	$gatk MarkDuplicates \
+	  --INPUT $input \
+		--OUTPUT $sampleName.sorted.dedup.bam \
+		--METRICS_FILE $sampleName.duplicates \
+		--CREATE_INDEX > $PWD/log/${sampleName}_${processDay}_dedup.log 2>&1 \
+		|| ( echo -e "ERROR occurred while marking duplication, please check $PWD/log/${sampleName}_${processDay}_dedup.log\\n";exit -1)
 
 	echo -e [`date`]\\tFinished mark duplication
 	delFile $sampleName.sorted.dedup.bam   $input  $input
@@ -63,11 +72,11 @@ if [ $startStep = "markDup" ];then
 fi
 allDone markDup
 
-#adding or replacing reads groups
+#Adding or Replacing Reads Groups
 if [ $startStep = "arGrp" ];then
 	echo -e [`date`]\\tStarting add or replace read groups...
-	
-	java  -jar $picard AddOrReplaceReadGroups \
+
+	# java  -jar $picard AddOrReplaceReadGroups \
 		INPUT="$input" \
 		OUTPUT="$sampleName.sorted.dedup.rg.bam" \
 		SORT_ORDER=coordinate \
@@ -77,33 +86,51 @@ if [ $startStep = "arGrp" ];then
 		RGPU=RUN \
 		RGSM="$sampleName" \
 		RGCN="$corp" \
-		VALIDATION_STRINGENCY=SILENT \
-		CREATE_INDEX=TRUE  > "$PWD/log/${sampleName}_${processDay}_readgroup.log"  2>&1 \
-	|| ( echo -e "ERROR occurred while adding group, please check $PWD/log/${sampleName}_${processDay}_readgroup.log\\n";exit -1)
+	# 	VALIDATION_STRINGENCY=SILENT \
+	# 	CREATE_INDEX=TRUE  > "$PWD/log/${sampleName}_${processDay}_readgroup.log"  2>&1 \
+	# || ( echo -e "ERROR occurred while adding group, please check $PWD/log/${sampleName}_${processDay}_readgroup.log\\n";exit -1)
+
+ $gatk AddOrReplaceReadGroups \
+ 					--INPUT "$input" \
+					--OUTPUT "$sampleName.sorted.dedup.rg.bam" \
+					--SORT_ORDER coordinate \
+					--RGID PSY \
+					--RGLB "$library" \
+					--RGPL "$platform" \
+					--RGPU RUN \
+					--RGSM "$sampleName" \
+					--RGCN "$corp" \
+					--CREATE_INDEX  > "$PWD/log/${sampleName}_${processDay}_readgroup.log"  2>&1 \
+					|| ( echo -e "ERROR occurred while adding group, please check $PWD/log/${sampleName}_${processDay}_readgroup.log\\n";exit -1)
+
 	delFile $sampleName.sorted.dedup.rg.bam    $input  "`basename $input .bam`.bai  $input"
 	echo -e [`date`]\\tFinished removing duplication
-	startStep="reAlign"
+	startStep "reAlign"
 	input=$sampleName.sorted.dedup.rg.bam
 fi
 allDone arGrp
 
-# realigning indel
+# Realigning Indels
 if [ $startStep = "reAlign" ];then
 	echo -e [`date`]\\tStart getting realignment target...
+
 	if [ ! -s ${sampleName}.realign.intervals  ];then
-	java -jar $gatk -T RealignerTargetCreator \
-		-R $reference \
-		-I $input \
-		-known $g1000 \
-		-known $mill \
-		-o $sampleName.realign.intervals \
-		-S LENIENT \
-		-nt $thread \
-		--filter_reads_with_N_cigar  > $PWD/log/${sampleName}_${processDay}_reTarget.log 2>&1 \
+	# java -jar $gatk -T RealignerTargetCreator \
+	# 	-R $reference \
+	# 	-I $input \
+	# 	-known $g1000 \
+	# 	-known $mill \
+	# 	-o $sampleName.realign.intervals \
+	# 	-S LENIENT \
+	# 	-nt $thread \
+	# 	--filter_reads_with_N_cigar  > $PWD/log/${sampleName}_${processDay}_reTarget.log 2>&1 \
+
+	$gatk RealignerTargetCreator
 	|| ( echo -e "ERROR occurred while realignment target, please check $PWD/log/${sampleName}_${processDay}_reTarget.log\\n";exit -1)
 	fi
+
 	echo -e [`date`]\\tFinished finding the realignment targets, starting realignment...
-	
+
 	if [ ! -s  ${sampleName}.sorted.dedup.realign.bam ];then
 	java -jar $gatk -T IndelRealigner \
 		-R $reference \
@@ -132,7 +159,7 @@ if [ $startStep = "reAlign" ];then
 		|| ( echo -e "ERROR occurred while BQSR, please check $PWD/log/${sampleName}_${processDay}_bqsr.log\\n";exit -1)
 	fi
 	echo -e [$currentTime]\\tFinished BQSR, start printing the reads...
-	
+
 	if [ ! -s $sampleName.sorted.dedup.realign.recal.bam ];then
 	java -jar $gatk -T PrintReads \
 		-R $reference \

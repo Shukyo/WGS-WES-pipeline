@@ -1,4 +1,5 @@
 #!/bin/bash -e
+
 #process input options and parameters, merge the paired option and parameter
 for i in "$@"
 do
@@ -10,7 +11,7 @@ done
 tem=($tem)
 temp=`getopt -qao  :n::1::2::i::w::k::l::I::M::t::s::e::S::G::KcVvh  --long  :sampleName::,read1::,read2::,input::,wkdir::,platform::,library::,sampleID::,method::,thread::,starStep::,endStep::,species::,gBuild::,keepFile,check,verbose,version,help -- "${tem[@]}" `
 eval set -- "$temp"
-if [ $# -eq "1" ]&&[ $@ = "--" ];then 
+if [ $# -eq "1" ]&&[ $@ = "--" ];then
 	echoHead  "=> Usage:\\n========================================================"
 	echo -e	  "1) dna_analysis.sh [options]\\c"
 	echoRG    '-n' '<Sample Name>' '-t' '16' '-1'  '<Read1>'  '-2'  '<Read2>'
@@ -20,7 +21,7 @@ if [ $# -eq "1" ]&&[ $@ = "--" ];then
 	echoRG    '-n' '<Sample Name>' '-G' 'hg38' '-t' '16' '-1'  '<Read1>'  '-2'  '<Read2>'
 	echo -e	  "\\n   rna_analysis.sh [options]\\c"
 	echoRG    '-n' '<Sample Name>' '-m' 'tophat' '-t' '16' '-1'  '<Read1>'  '-2'  '<Read2>'
-	
+
 	echo -e   "\\n2) rna_analysis.sh [options]\\c"
 	echoRG    '-n' '<Sample Name>' '-s' '<Start Step>' '-e' '<End Step>' '-i' '<Bam File>'
 	echo -e   "\\n3) rna_analysis.sh\\c"
@@ -32,6 +33,7 @@ if [ $# -eq "1" ]&&[ $@ = "--" ];then
 	echo -e "\\n"
 	exit 0
 fi
+
 while true;do case "$1" in
 	-n|--sampleName)        case $2 in "")  wrongpara="$wrongpara $1" && shift 2;; *)sampleName=$2 && shift 2;;esac;;
 	-1|--read1)             case $2 in "")  wrongpara="$wrongpara $1" && shift 2;; *)read1=$2 && shift 2;;esac;;
@@ -60,15 +62,20 @@ while true;do case "$1" in
 esac
 done
 shift $((OPTIND - 1))
+
 if [ "$check" = "Yes" ];then verbose="Yes";fi
+# set sortBam as the 1st step if bam file was given as input
 if [ -n "$input" ]&&[ -z "startStep" ];then startStep="sortBam";fi
+# change the relative path into absolute path
 if [ -n "$input" ]&&[[ $input != /* ]];then input=$PWD"/"$input;fi
 if [ -n "$read1" ]&&[[ $read1 != /* ]];then read1=$PWD"/"$read1;fi
 if [ -n "$read2" ]&&[[ $read2 != /* ]];then read2=$PWD"/"$read2;fi
 
+# ONLY single geonome version for mouse of zebrafish
 if [  "$species" = "mouse" ];then gBuild=mm10;fi
 if [  "$species" = "zebrafish" ];then gBuild=danRer10;fi
-# change reference according species and gBuild
+
+# change reference files according to species and gBuild
 if [ "$species" != "human" ]||[ $gBuild != "hg19" ];then
 	reference=`eval echo "\\$reference_${gBuild}"`
 	bwa_index_base=`eval echo "\\$bwa_index_base_${gBuild}"`
@@ -78,4 +85,5 @@ if [ "$species" != "human" ]||[ $gBuild != "hg19" ];then
 	mill=`eval echo "\\$mill_${gBuild}"`
 	dbsnp=`eval echo "\\$dbsnp_${gBuild}"`
 fi
-defineRef 
+
+defineRef

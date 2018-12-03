@@ -1,4 +1,5 @@
 #!/bin/bash -e
+
 cd $wkdir
 if [ ! -s $sampleName ];then mkdir $sampleName;fi
 cd $sampleName

@@ -1,15 +1,19 @@
 #!/bin/bash -e
 
+# ERROR when folder was unwritable
 if [ ! -w $wkdir ];then  error="$error \033[1;31m$wkdir: \033[0m is NOT writeable!\\n";fi
-#check the options and parameteres
+
+# check the options and parameteres
 if [ ! -z "$wrongpara" ];then error="$error \033[1;31m$wrongpara: \033[0mNull/wrong parameters\\n";fi
 if [ "$error" ]&&[ "check" = "No" ];then echo -e $error; exit -1;fi
 
 # obtain the included steps
-if [ "$species" = "human" ];then 
+if [ "$species" = "human" ];then
 	allSteps=(fastq sortBam markDup arGrp reAlign varCall);
-else 
-	allSteps=(fastq sortBam markDup arGrp varCall);fi
+else
+	allSteps=(fastq sortBam markDup arGrp varCall);
+fi
+
 x=0
 checkStepOrder=0
 for start in  ${allSteps[@]}
@@ -25,7 +29,8 @@ do
 done
 
 if [ $checkStepOrder = 0 ];then  error="$error \033[1;31mEndStep must before startStep\033[0m\\n";fi
-# ouput the status of references which were necessary in  those steps between startStep and endStep
+
+# print the status of references which were necessary in  those steps between startStep and endStep
 for s in ${steps[@]}
 do
 	refs=( ${refs[@]}  `eval echo  "\\${${s}_ref[@]}"`)
@@ -36,12 +41,12 @@ checkFile ${refs[@]}
 
 
 #check the additional parameters
-if [ $# -ge 2 ]&&[ "$startStep" = "fastq" ];then read1=$1 ;read2=$2 ;fi 
+if [ $# -ge 2 ]&&[ "$startStep" = "fastq" ];then read1=$1 ;read2=$2 ;fi
 if [ $# -ge 1 ]&&[ "$startStep" != "fastq" ];then input=$1;fi
 
 # check sample Name and input files
 if [ $verbose = "Yes" ];then echo -e "\033[1;33mPARAMETERS INPUT CHECKING...\033[0m";fi
-if [ $startStep = "fastq" ];then  
+if [ $startStep = "fastq" ];then
 	if [[ $read1 == *,* ]]&&[[ $read1 != *,*,* ]]&&[[ $read2 == *,* ]]&&[[ $read2 != *,*,* ]];then
 		 read1=${read1//,/ }
 		 read2=${read2//,/ }
@@ -49,9 +54,10 @@ if [ $startStep = "fastq" ];then
 		 error=$error"The progame could not process > 2 pair of fastq, please run separately\\n"
 	else if [[ $read1 == *,* ]]&&[[ $read2 != *,* ]];then
 		 error=$error"Fastq2 must matched with fastq1\\n";break 2;fi
-	fi;fi
+	fi
+fi
 	inputFiles="$read1 $read2"
-	checkPara  "sampleName read1 read2" 
+	checkPara  "sampleName read1 read2"
 else
 	inputFiles="$input"
 	checkPara "sampleName input"
@@ -59,7 +65,7 @@ fi
 if [ $verbose = "Yes" ];then echo -e "\033[1;33mINPUT FILES CHECKING...\033[0m";fi
 checkFile $inputFiles
 if [ $verbose = "Yes" ];then echo -e "\033[1;33mOthers\\n\033[34m-------------------------------------------\033[0m";fi
-if [ "$checkError" ]||[ "$error" ]||[ "$errorItems" ];then 
+if [ "$checkError" ]||[ "$error" ]||[ "$errorItems" ];then
 	if [ "$error" ];then echo -e "\033[1;31m$error\033[0m";fi
 	if [ "$verbose" = "No" ];then
 		echo -e "\033[1;31m$errorItems\033[0m should be checked via -V option before run!"

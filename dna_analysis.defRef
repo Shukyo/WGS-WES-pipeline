@@ -1,7 +1,8 @@
 #!/bin/bash -e
 
+# define the default parameters
 wkdir=$PWD
-thread=1
+thread=8
 platform="illumina"
 library="TrueSeq"
 startStep="fastq"
@@ -9,44 +10,40 @@ endStep="varCall"
 species="human"
 gBuild="hg19"
 method="bwa"
-version=2.0
+version=3.0
 keepFile="No"
 check="No"
-corp="Halpos"
+corp="SKLB"
 verbose="No"
 
-## progame path
-bwa="/usr/bin/bwa"
-speedseq="/software/speedseq/bin//speedseq"
-samtools="/usr/bin/samtools"
-gatk="/software/GATK/GenomeAnalysisTK.jar"
+## progamme path
+bwa=`which bwa`
+#speedseq="/software/speedseq/bin//speedseq"
+samtools=`which samtools`
+gatk=`which gatk`
 picard="/software/GATK/picard.jar"
 
-## reference
-## human 
-# hg19
+## reference files
+# human - hg19
 reference="/database/ref/hg19.fa"
 bwa_index_base="/database/iGenome/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa"
 dbsnp="/database/GATK/hg19/db142.hg19.vcf"
 g1000="/database/GATK/hg19/1000G_phase1.indels.hg19.sites.vcf"
 mill="/database/GATK/hg19/Mills_and_1000G_gold_standard.indels.hg19.sites.vcf"
 
-# hg38
+# human - hg38
 reference_hg38="/database/ref/hg38.fa"
 bwa_index_base_hg38="/database/iGenome/Homo_sapiens/UCSC/hg38/Sequence/BWAIndex/genome"
 dbsnp_hg38="/database/GATK/hg38/db142.hg38.vcf"
 g1000_hg38="/database/GATK/hg38/Homo_sapiens_assembly38.known_indels.vcf"
 mill_hg38="/database/GATK/hg38/Mills_and_1000G_gold_standard.indels.hg38.vcf"
 
-## mouse
-#mm10
+# mouse - mm10
 reference_mm10="/database/ref/mm10.fa"
 dbsnp_mm10="/database/snp/mouse/00-All.vcf"
 bwa_index_base_mm10="/database/iGenome/Mus_musculus/UCSC/mm10/Sequence/BWAIndex/genome.fa"
 
-
-## zebrafish
-## danRer10
+## zebrafish - danRer10
 reference_danRer10="/database/ref/danRer10.fa"
 dbsnp_danRer10="/database/snp/zebrafish/00-All.vcf"
-
+bwa_index_base_danRer10="/database/iGenome/Danio_rerio/UCSC/danRer10/Sequence/BWAIndex/genome.fa"

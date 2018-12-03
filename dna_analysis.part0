@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "test"
+echo "test1"
 function echoHead(){   # print with bold and red font
 	echo -e "\033[1;31m$1\033[0m"
 }

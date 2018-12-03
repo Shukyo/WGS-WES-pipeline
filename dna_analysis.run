@@ -77,15 +77,15 @@ if [ $startStep = "arGrp" ];then
 	echo -e [`date`]\\tStarting add or replace read groups...
 
 	# java  -jar $picard AddOrReplaceReadGroups \
-		INPUT="$input" \
-		OUTPUT="$sampleName.sorted.dedup.rg.bam" \
-		SORT_ORDER=coordinate \
-		RGID=PSY \
-		RGLB="$library" \
-		RGPL="$platform" \
-		RGPU=RUN \
-		RGSM="$sampleName" \
-		RGCN="$corp" \
+		# INPUT="$input" \
+		# OUTPUT="$sampleName.sorted.dedup.rg.bam" \
+		# SORT_ORDER=coordinate \
+		# RGID=PSY \
+		# RGLB="$library" \
+		# RGPL="$platform" \
+		# RGPU=RUN \
+		# RGSM="$sampleName" \
+		# RGCN="$corp" \
 	# 	VALIDATION_STRINGENCY=SILENT \
 	# 	CREATE_INDEX=TRUE  > "$PWD/log/${sampleName}_${processDay}_readgroup.log"  2>&1 \
 	# || ( echo -e "ERROR occurred while adding group, please check $PWD/log/${sampleName}_${processDay}_readgroup.log\\n";exit -1)
@@ -110,29 +110,28 @@ if [ $startStep = "arGrp" ];then
 fi
 allDone arGrp
 
-# Realigning Indels
+# Realigning  < NO realign in GATK4.0 >
 if [ $startStep = "reAlign" ];then
 	echo -e [`date`]\\tStart getting realignment target...
-
+ #calculate the intervals
 	if [ ! -s ${sampleName}.realign.intervals  ];then
-	# java -jar $gatk -T RealignerTargetCreator \
-	# 	-R $reference \
-	# 	-I $input \
-	# 	-known $g1000 \
-	# 	-known $mill \
-	# 	-o $sampleName.realign.intervals \
-	# 	-S LENIENT \
-	# 	-nt $thread \
-	# 	--filter_reads_with_N_cigar  > $PWD/log/${sampleName}_${processDay}_reTarget.log 2>&1 \
-
-	$gatk RealignerTargetCreator
+	java -jar $gatkjar -T RealignerTargetCreator \
+		-R $reference \
+		-I $input \
+		-known $g1000 \
+		-known $mill \
+		-o $sampleName.realign.intervals \
+		-S LENIENT \
+		-nt $thread \
+		--filter_reads_with_N_cigar  > $PWD/log/${sampleName}_${processDay}_reTarget.log 2>&1 \
 	|| ( echo -e "ERROR occurred while realignment target, please check $PWD/log/${sampleName}_${processDay}_reTarget.log\\n";exit -1)
 	fi
 
 	echo -e [`date`]\\tFinished finding the realignment targets, starting realignment...
 
+  # realign the indels
 	if [ ! -s  ${sampleName}.sorted.dedup.realign.bam ];then
-	java -jar $gatk -T IndelRealigner \
+	java -jar $gatkjar -T IndelRealigner \
 		-R $reference \
 		-I $input \
 		-targetIntervals $sampleName.realign.intervals \
@@ -143,9 +142,12 @@ if [ $startStep = "reAlign" ];then
 		--filter_reads_with_N_cigar  > $PWD/log/${sampleName}_${processDay}_realign.log 2>&1 \
 		|| ( echo -e "ERROR occurred while realignment, please check $PWD/log/${sampleName}_${processDay}_realign.log\\n";exit -1)
 	fi
+
 	echo -e [`date`]\\tFinished indel realignment, starting BQS...
 	if [ ! -s $sampleName.recalibration_report.grp ];then
-	java -jar $gatk -T BaseRecalibrator \
+
+		# recalibrate the base quality
+	java -jar $gatkjar -T BaseRecalibrator \
 		-R $reference \
 		-l INFO \
 		-I $sampleName.sorted.dedup.realign.bam \
@@ -160,8 +162,9 @@ if [ $startStep = "reAlign" ];then
 	fi
 	echo -e [$currentTime]\\tFinished BQSR, start printing the reads...
 
+   # print out the recal reads
 	if [ ! -s $sampleName.sorted.dedup.realign.recal.bam ];then
-	java -jar $gatk -T PrintReads \
+	java -jar $gatkjar -T PrintReads \
 		-R $reference \
 		-l INFO  \
 		-I $sampleName.sorted.dedup.realign.bam \
@@ -171,7 +174,9 @@ if [ $startStep = "reAlign" ];then
 		-nct $thread > $PWD/log/${sampleName}_${processDay}_print.log 2>&1 \
 		|| ( echo -e "ERROR occurred while printing reads , please check $PWD/log/${sampleName}_${processDay}_print.log\\n";exit -1)
 	fi
+
 	echo -e [`date`]\\tFinished recalibration bam file
+
 	delFile $sampleName.sorted.dedup.realign.recal.bam  $input "$input `basename $input .bam`.bai $sampleName.realign.intervals $sampleName.sorted.dedup.realign.bam  $sampleName.sorted.dedup.realign.bai  $sampleName.recalibration_report.grp"
 	startStep="varCall"
 	input=$sampleName.sorted.dedup.realign.recal.bam
@@ -180,16 +185,28 @@ allDone reAlign
 
 # call variants
 if [ $startStep = "varCall" ];then
-	echo -e [`date`]\\tStart UnifiedGenotyper
-	java -jar $gatk -T UnifiedGenotyper \
-		-glm BOTH \
-		-R $reference \
-		-slod \
-		-I $input \
-		--dbsnp $dbsnp \
-		-o $sampleName.raw.snps.indels.g.vcf  >${sampleName}_${processDay}_UnifiedGenotyper.log 2>&1 \
-		|| ( echo -e "ERROR occurred while call variants, please check $PWD/log/${sampleName}_${processDay}_UnifiedGenotyper.log\\n";exit -1)
+	echo -e [`date`]\\tStart HaplotypeCaller...
+
+	if [ ! -s $sampleName.g.vcf ];then
+	# java -jar $gatk -T UnifiedGenotyper \
+		# -glm BOTH \
+		# -R $reference \
+		# -slod \
+		# -I $input \
+		# --dbsnp $dbsnp \
+		# -o $sampleName.raw.snps.indels.g.vcf  >${sampleName}_${processDay}_UnifiedGenotyper.log 2>&1 \
+		# || ( echo -e "ERROR occurred while call variants, please check $PWD/log/${sampleName}_${processDay}_UnifiedGenotyper.log\\n";exit -1)
 	#samtools mpileup -gf $reference  $input -o $sampleName.raw.snps.indels.vcf > $PWD/log/sampleName"_"$processDay"_"SamtoolsMpileup.log 2>&1 || ( echo -e     "ERROR occurred while call variants, please check $PWD/log/${sampleName}_${processDay}_SamtoolsMpileup.log\\n";exit -1)
-	echo -e [`date`]\\tAnalysis completed, final output: $sampleName.raw.snps.indels.vcf
+$gatk  HaplotypeCaller \
+     -R $reference \
+		 -I $sampleName.sorted.dedup.realign.recal.bam \
+		 -o $sampleName.g.vcf  \
+		 -ERC GVCF \
+		 --variant_index_type LINEAR \
+		 --variant_index_parameter 128000 >${sampleName}_${processDay}_haplotypeCaller.log 2>&1 \
+     || ( echo -e "ERROR occurred while call variants, please check $PWD/log/${sampleName}_${processDay}_UnifiedGenotyper.log\\n";exit -1)
+fi
+
+	echo -e [`date`]\\tAnalysis completed, final output: $sampleName.g.vcf
 fi
 allDone varCall

@@ -21,6 +21,7 @@ bwa=`which bwa`
 #speedseq="/software/speedseq/bin//speedseq"
 samtools=`which samtools`
 gatk=`which gatk`
+gatkjar="/software/GATK/GenomeAnalysisTK.jar"
 picard="/software/GATK/picard.jar"
 
 ## reference files

@@ -1,0 +1,30 @@
+#!/bin/bash -e
+cd $wkdir
+if [ ! -s $sampleName ];then mkdir $sampleName;fi
+cd $sampleName
+processDay=`date +%Y%m%d`
+oriFile=$input
+if [ ! -s log ];then mkdir log; fi
+
+echo -e "\033[1;33mPARAMETERS\\n-------------------------------------------\033[0m"
+echoInfo "The result will output into:" $PWD
+echoHead "Sample Info"
+echo "======================================="
+	echoInfo "  Sample Name:" $sampleName
+	echoInfo "   Start Step:" $startStep
+	echoInfo "     End Step:" $endStep
+if [ "$startStep" = "fastq" ];then
+	echoInfo "       Method:" $method
+	echoInfo "        Read1:" $read1
+	echoInfo "        Read2:" $read2
+else
+	echoInfo "   Input file:" $input
+fi
+echoHead "Others"
+echo "======================================="
+	echoInfo "      Species:" $species
+	echoInfo "Build version:" $gBuild
+	echoInfo "      Threads:" $thread
+	echoInfo "   Keep Files?" $keepFile
+echo "======================================="
+if [ "$check" = "Yes" ];then exit 0;fi

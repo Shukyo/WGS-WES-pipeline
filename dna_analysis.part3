@@ -1,0 +1,81 @@
+#!/bin/bash -e
+#process input options and parameters, merge the paired option and parameter
+for i in "$@"
+do
+	if [[ $i == -* ]];then tem=$tem" $i";tag="$i";tag1="0";fi
+	if [[ $i != -* ]]&&[ $tag1 -eq "1" ];then tem=$tem" $i";fi
+	if [[ $i != -* ]]&&[[ $tag != --* ]]&&[ $tag1 -eq "0" ];then tem="$tem""$i";tag1="1";fi
+	if [[ $i != -* ]]&&[[ $tag == --* ]]&&[ $tag1 -eq "0" ];then tem="$tem"="$i";tag1="1";fi
+done
+tem=($tem)
+temp=`getopt -qao  :n::1::2::i::w::k::l::I::M::t::s::e::S::G::KcVvh  --long  :sampleName::,read1::,read2::,input::,wkdir::,platform::,library::,sampleID::,method::,thread::,starStep::,endStep::,species::,gBuild::,keepFile,check,verbose,version,help -- "${tem[@]}" `
+eval set -- "$temp"
+if [ $# -eq "1" ]&&[ $@ = "--" ];then 
+	echoHead  "=> Usage:\\n========================================================"
+	echo -e	  "1) dna_analysis.sh [options]\\c"
+	echoRG    '-n' '<Sample Name>' '-t' '16' '-1'  '<Read1>'  '-2'  '<Read2>'
+	echo -e	  "\\n   rna_analysis.sh [options]\\c"
+	echoRG    '-n' '<Sample Name>' '-S' 'mouse' '-t' '16' '-1'  '<Read1>'  '-2'  '<Read2>'
+	echo -e	  "\\n   rna_analysis.sh [options]\\c"
+	echoRG    '-n' '<Sample Name>' '-G' 'hg38' '-t' '16' '-1'  '<Read1>'  '-2'  '<Read2>'
+	echo -e	  "\\n   rna_analysis.sh [options]\\c"
+	echoRG    '-n' '<Sample Name>' '-m' 'tophat' '-t' '16' '-1'  '<Read1>'  '-2'  '<Read2>'
+	
+	echo -e   "\\n2) rna_analysis.sh [options]\\c"
+	echoRG    '-n' '<Sample Name>' '-s' '<Start Step>' '-e' '<End Step>' '-i' '<Bam File>'
+	echo -e   "\\n3) rna_analysis.sh\\c"
+	echoRG    '-s' '<Star Step>' '-e' '<End Step>' '-c'
+	echoHead  "\\n=> Steps:\\n========================================================"
+	echoRG    "|" fastq '|'  sortBam '|' markDup '|' arGrp '|' reAlign '|' varCall '|'
+	echoHead  "\\n=> Supported Genome:\\n========================================================"
+	echoRG    "|" human '|' mouse  '|' zebrafish '|'
+	echo -e "\\n"
+	exit 0
+fi
+while true;do case "$1" in
+	-n|--sampleName)        case $2 in "")  wrongpara="$wrongpara $1" && shift 2;; *)sampleName=$2 && shift 2;;esac;;
+	-1|--read1)             case $2 in "")  wrongpara="$wrongpara $1" && shift 2;; *)read1=$2 && shift 2;;esac;;
+	-2|--read2)             case $2 in "")  wrongpara="$wrongpara $1" && shift 2;; *)read2=$2 && shift 2;;esac;;
+	-i|--input)             case $2 in "")  wrongpara="$wrongpara $1" && shift 2;; *)input=$2 && shift 2;;esac;;
+	-w|--wkdir)             case $2 in "")  wrongpara="$wrongpara $1" && shift 2;; *)wkdir=$2 && shift 2;;esac;;
+	-k|--platform)          case $2 in "")  wrongpara="$wrongpara $1" && shift 2;; *)platform=$2 && shift 2;;esac;;
+	-l|--library)           case $2 in "")  wrongpara="$wrongpara $1" && shift 2;; *)library=$2 && shift 2;;esac;;
+	-I|--sampleID)          case $2 in "")  wrongpara="$wrongpara $1" && shift 2;; *)id=$2 && shift 2;;esac;;
+	-M|--method)            case $2 in bwa|speedseq) method=$2 && shift 2;; ""|*) wrongpara="$wrongpara $1" && shift 2;;esac;;
+	-t|--thread)            case $2 in [1-6][0-9]|[1-9])thread=$2 && shift 2;; ""|*) wrongpara="$wrongpara $1" && shift 2;; esac;;
+	-s|--startStep)         case $2 in fastq|sortBam|markDup|arGrp|reAlign|varCall)startStep=$2 && shift 2;; \
+				""|*)  wrongpara="$wrongpara $1" && shift 2;;esac;;
+	-e|--endStep)           case $2 in fastq|sortBam|markDup|arGrp|reAlign|varCall)endStep=$2 && shift 2;; \
+				""|*)wrongpara="$wrongpara $1" && shift 2;;esac;;
+	-S|--species)           case $2 in human|mouse|zebrafish)species=$2 && shift 2;; \
+				""|*)wrongpara="$wrongpara $1" && shift 2;;esac;;
+	-G|--gBuild)            case $2 in hg*|mm*|danRer*) gBuild=$2 && shift 2;; \
+				""|*)wrongpara="$wrongpara $1" && shift 2;;esac;;
+	-K|--keepFile)          keepFile="Yes";shift;;
+	-c|--check)          	check="Yes"; shift;;
+	-V|--verbose)           verbose="Yes";shift;;
+	-v|--version)           printf '%s\n' "`basename $0` : Version: $version"; exit 0;;
+	-h|--help)              printf '%s\n' "$help"; exit 0;;
+	--)                     shift;break;;
+esac
+done
+shift $((OPTIND - 1))
+if [ "$check" = "Yes" ];then verbose="Yes";fi
+if [ -n "$input" ]&&[ -z "startStep" ];then startStep="sortBam";fi
+if [ -n "$input" ]&&[[ $input != /* ]];then input=$PWD"/"$input;fi
+if [ -n "$read1" ]&&[[ $read1 != /* ]];then read1=$PWD"/"$read1;fi
+if [ -n "$read2" ]&&[[ $read2 != /* ]];then read2=$PWD"/"$read2;fi
+
+if [  "$species" = "mouse" ];then gBuild=mm10;fi
+if [  "$species" = "zebrafish" ];then gBuild=danRer10;fi
+# change reference according species and gBuild
+if [ "$species" != "human" ]||[ $gBuild != "hg19" ];then
+	reference=`eval echo "\\$reference_${gBuild}"`
+	bwa_index_base=`eval echo "\\$bwa_index_base_${gBuild}"`
+	star_index_dir=`eval echo "\\$star_index_dir_${gBuild}"`
+	tophat_index_dir=`eval echo "\\$tophat_index_dir_${gBuild}"`
+	g1000=`eval echo "\\$g1000_${gBuild}"`
+	mill=`eval echo "\\$mill_${gBuild}"`
+	dbsnp=`eval echo "\\$dbsnp_${gBuild}"`
+fi
+defineRef 

@@ -1,0 +1,26 @@
+#!/bin/bash -e
+### Records in inputed vcf files should began with 1-22 and X Y < chr should not included> 
+# program
+vcf2maf="/software/vcf2maf/vcf2maf.pl"
+vep="$HOME/vep/variant_effect_predictor.pl" # necessary for vcf2maf
+
+music2="/usr/local/bin/music2"
+calcRoiCovg="/software/calcRoiCovg/calcRoiCovg"
+
+joinx="/usr/bin/joinx1.7" #necessary for bmr calucation
+
+# reference
+hg19="/database/ref/hg19.fa"
+all_coding_exons="/software/calcRoiCovg/data/all_coding_exons.tsv"
+
+# default parameters
+startStep="maf"
+endStep="smg"
+wd=`pwd`
+bamList="$wd/bamfile.list"
+maxfdr="0.5"
+output="smg.out"
+thread=6
+version="1.0"
+verbose="No"
+check="No"

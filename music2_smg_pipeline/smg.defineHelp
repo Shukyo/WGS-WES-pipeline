@@ -1,0 +1,48 @@
+help='Call Significant Mutated Genes (SMGs) with MuSiC
+
+Usage: '`basename $0`' [options] -i <input>
+==================================================================================
+Sample Information:
+	-i|--inputInput		File need to process			[ REQUIRED              ]
+	-n|--name		Sample name				[ maf REQUIRED          ]
+	-a|--normalBam		Normal bam file for covg		[ roifile REQUIRED      ]
+	-b|--tumorBam		Tumor bam file for covg			[ roifile REQUIRED      ]
+	-l|--bamList		List file of bam files			[ totalcovg/bmr REQUIRED]
+Programme Paths:
+
+Others:
+	-o|--output		File for write outout			[ bmr REQUIRED          ]
+	-m|--maxFDR		Max FDR to call smg			[ bmr default: '$maxfdr']
+	-s|--startStepStep	First step to perform  	< maf |  covgs | bmr | smg | >
+									[ default: '$startStep' ]
+	-e|--endStep		Last step to perform  < maf |  covgs | bmr | smg | >
+									[ default: '$endStep'   ]
+	-c|--check              check the references                    [ default: '$check'     ]
+	-V|--verbose		Verbose of the logs                     [ default: '$verbose'   ]
+	-v|--version		Version of software
+	-h|--help		Show this information
+==================================================================================
+NOTICE: < maf | roifile > steps could run separately for different samples !
+	Script for preparing vcf file could be refer to then end of script file: '$0'	
+==================================================================================
+EXAMPLES:
+	[vcf2maf] 	smg.sh -i input.vcf -n name 
+	[totalcovg]	smg.sh -s totalcovg -e totalcovg -l bamlist.txt
+	[smg]		smg.sh -s bmr -e bmr -l bamlist.txt 
+	'
+
+if [ -z "$1" ];then
+	echoHead  "Usage:"
+	echo -e   "\\t`basename $0` [options]\\c"
+	echoRG    '-i'  '<input>'
+	echoHead  "\\nExamples:\\n========================================================"
+	echo -e   "\\t1) smg.sh \\c"
+	echoRG    '-n' '<Sample Name>' '-i' '<input.vcf>'
+	echoHead  "\\n=> Steps:\\n========================================================"
+	echoRG    "|" maf '|'  roifile '|' covgs '|' totalcovg '|' bmr '|'
+	echo -e "\\n"
+	exit 0
+fi
+
+
+

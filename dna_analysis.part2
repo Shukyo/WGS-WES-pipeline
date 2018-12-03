@@ -1,0 +1,39 @@
+#!/bin/bash -e
+help='DNA Sequencing Pipeline
+A simple automated script to prepare the require file for variant calling in RNA sequencing
+==============================================================================================
+Sample Information:
+	-n|--sampleName		Name of the Sample		[ REQUIRED ]
+	-1|--read1		Path to the forward read	[ REQUIRED If Alignment ]
+	-2|--read2		Path to the reverse read	[ REQUIRED If Alignment ]
+	-i|--input		Input files			[ REQUIRED If Processing bam ]
+	-w|--wkdir		Working directory		[ default: '$wkdir' ]
+	-k|--platform		Sequencing platform		[ default: '$platform' ]
+	-l|--library		Sequencing Library		[ default: '$library' ]
+	-I|--sampleID		SampleID(unique for each sample)	
+genomics:
+	-W|--species		Species of data ( human|mouse|zebrafish )
+									[ default: '$species' ]
+	-B|--gBuild		Build version for genome		[ default: '$gBuild' ]
+Misc:
+	-M|--method		Method for alignment( star|tophat )	[ default: '$method' ]
+	-t|--thread		Number of threads used in align | realign steps
+									[ default: '$thread' ]
+	-s|--startStep		The first step to process ( fastq|sortBam|markDup|arGrp|reAlign|varCall )
+									[ default: '$startStep' ]
+	-e|--endStep		The final step of process ( fastq|sortBam|markDup|arGrp|reAlign|varCall )
+									[ default: '$endStep' ]
+	-K|--keepFile		Whether keep the intermediate file	[ default: '$keepFile' ]
+	-c|--check		check the references			[ default: '$check' ]
+	-V|--verbose		Verbose of the logs			[ default: '$verbose' ]
+	-v|--version		Show the version
+	-h|--help		To display this help message
+Notice:
+	If you want to modify the defalut parameters of alignment or other processes,please copy this
+	script and modified directly in the copy
+==============================================================================================
+Usage:    1) '`basename $0`' [options] -1 <Read1> -2 <Read2> -n <Sample Name>
+	  2) '`basename $0`' [options] -n <Sample Name> -s <Star Step> -e <End Step> -i <Bam File>
+	  3) '`basename $0`' -s <Star Step> -e <End Step> -c
+'
+

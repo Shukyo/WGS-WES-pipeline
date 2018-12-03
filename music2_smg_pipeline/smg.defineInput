@@ -1,0 +1,70 @@
+#!/bin/bash -e
+
+if [ ! -w $wkdir ];then  error="$error \033[1;31m$wkdir: \033[0m is NOT writeable!\\n";fi
+
+#check the options and parameteres
+if [ ! -z "$wrongpara" ];then error="$error \033[1;31m$wrongpara: \033[0mNull/wrong parameters\\n";fi
+
+allSteps=(maf covgs bmr smg);
+checkStep
+if [ $checkStepOrder = 0 ];then  error="$error \033[1;31mEndStep must before startStep\033[0m\\n";fi
+
+# ouput the status of references which were necessary in  those steps between startStep and endStep
+for s in ${steps[@]}
+do
+	 refs=( ${refs[@]}  `eval echo  "\\${${s}_ref[@]}"`)
+done
+refs=($(awk -vRS=' ' '!a[$1]++' <<< ${refs[@]}))   # necessary references
+if [ $verbose = "Yes" ];then echo -e "\033[1;33mREFERENCE CHECKING...\033[0m";fi
+checkFile ${refs[@]}
+
+if [ $verbose = "Yes" ];then echo -e "\033[1;33mPARAMETERS INPUT CHECKING...\033[0m";fi
+checkPara "name"
+
+
+if [ $verbose = "Yes" ];then echo -e "\033[1;33mINPUT FILES CHECKING...\033[0m";fi
+if [  -s "$bamList" ];then
+	normalBam=`grep -E ^T$name $bamList | cut -f 2`
+	tumorBam=`grep -E ^T$name $bamList | cut -f 3`
+fi
+
+if [ "$startStep" = "maf" ];then
+	input="$input $bamList"
+elif [ "$startStep" = "covgs" ];then
+	input="$normalBam $tumorBam $bamList"
+elif [ "$startStep" = "bmr" ];then
+	input=$bamList
+elif [ "$startStep" = "smg" ];then
+	input="smgFiles/gene_mrs $bamList"
+fi
+
+checkFile $input
+	
+
+if [ $verbose = "Yes" ];then 
+	echo -e "\033[1;33mOthers\\n\033[34m-------------------------------------------\033[0m";
+fi
+
+nameCheck=`grep -E ^T$name $bamList|cut -f 1`
+if [ -z "$nameCheck" ];then
+	if [ $verbose = "Yes" ];then
+		echo -e "\033[1;31mName must be accordant with bamList where 'T + name' as 1st column\033[0m";
+		checkError=1		
+	else
+		errorItems="$errorItems | name |"
+	fi
+fi
+
+if [ "$checkError" ]||[ "$error" ]||[ "$errorItems" ];then
+	if [ "$error" ];then echo -e "\033[1;31m$error\033[0m";fi
+	if [ "$verbose" = "No" ];then
+		echo -e "\033[1;31m$errorItems\033[0m should be checked via -V option before run!"
+	fi
+	if [ -z "$error" ]&&[ "$verbose" = "Yes" ];then
+		echo -e "\033[1;31mFile Missing or wrong Parameters!\033[0m"
+	fi
+	exit -1
+fi
+
+if [ "$check" = "Yes" ];then exit 0;fi
+

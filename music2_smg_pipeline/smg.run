@@ -1,0 +1,91 @@
+#/bin/bash -e 
+processDay=`date +%Y%m%d%H%M`
+cd $wd
+
+### Create folder  
+if [ ! -e logs/vcf2maf ];then mkdir -p logs/vcf2maf;fi
+if [ ! -e logs/covgs ];then mkdir -p logs/covgs;fi
+if [ ! -e mafFiles ];then mkdir mafFiles; fi
+if [ ! -e smgFiles/roi_covgs ];then mkdir  -p smgFiles/roi_covgs; fi
+if [ ! -e smgFiles/bmr ];then mkdir  -p smgFiles/bmr; fi
+
+
+### convert vcf to maf files
+if [ $startStep = "maf" ];then
+	echo -e "[`date`]\\tBegin converting vcf to maf..."
+
+	# the tumor-id and normal-id were necessary,and the sample name should be same as tumor-id 
+	if [ ! -s "mafFiles/$name.maf" ];then
+		$vcf2maf  --input-vcf $input --output-maf mafFiles/$name.maf --tumor-id T$name --normal-id  N$name  >logs/vcf2maf/${name}_vcf2maf_${processDay}.log 2>&1  \
+		|| ( echo -e "ERROR occurred while vcf2maf, please check logs/vcf2maf/${name}_vcf2maf_$processDay.log\\n";exit -1)
+	else
+		echo -e "[ mafFiles/$name.maf ] already existed, please delete it if you want to re-run with new parameteres!"
+	fi
+	echo -e "[`date`]\\tFinish converting vcf to maf!"
+	startStep="covgs"
+fi
+allDone maf
+
+if [ $startStep = "covgs" ];then
+	echo -e "[`date`]\\tbegin calculating the roi coverage,it would takes sereval hours..."
+
+	if [ ! -s "smgFiles/roi_covgs/T$name.covg" ];then
+		$calcRoiCovg  $normalBam  $bamTumor  $all_coding_exons  $hg19  smgFiles/roi_covgs/T$name.covg  >logs/covgs/${name}_covgs_${processDay}.log 2>&1 \
+		|| ( echo -e "ERROR occurred while calcRoiCovg, please check logs/covgs/${name}_covgs_$processDay.log\\n";exit -1)
+	echo $name >>logs/count.txt	
+	else
+		echo -e "[ smgFiles/roi_covgs/T$name.covg ] already existed, please delete it if you want to re-run with new parameteres!"
+	fi
+	echo -e "[`date`]\\tFinish calculating the roi coverage!"
+
+# judge the calculated sample counts, proceed to next step after all samples have been preprocessed.
+	covgsCount=`wc -l <logs/count.txt`
+	sampleCount=`wc -l <$bamList`
+	if [ $covgsCount -eq $sampleCount ];then
+		startStep="bmr"
+	else
+		exit 0
+	fi
+	
+fi
+allDone covgs
+####### 2nd steps
+
+# create total coverage file smgFiles/total_covgs
+if [ $startStep = "bmr" ];then
+	echo -e "[`date`]\\tbegin calculating background mutated rate..."
+
+	if [ ! -s smgFiles/gene_mrs ];then
+		if [ ! -s smgFiles/total_covgs ];then
+			echo -e "[`date`]\\tsmgFiles/total_covgs is missing, creating the total_covgs"
+			$music2 bmr calc-covg  --bam-list $bamList --output-dir smgFiles/  --reference-sequence $hg19   --roi-file $all_coding_exons  >logs/total_covgs_${processDay}.log 2>&1 \
+			|| ( echo -e "ERROR occurred while creating total roi coverage, please check logs/total_covgs_${processDay}.log\\n";exit -1)
+		fi
+		if [ ! -s smgFiles/all.maf ];then
+			echo -e "[`date`]\\tsmgFiles/all.maf is missing, merging all maf files to all.maf..."
+#			tail -n+3 -q ./mafFiles/*.maf > smgFiles/all.maf
+		fi
+
+		$music2 bmr calc-bmr --bam-list $bamList --maf-file smgFiles/all.maf --output-dir ./smgFiles --reference-sequence  $hg19  --roi-file  $all_coding_exons  2>&1  >logs/cal_bmr_${processDay}.log \
+		|| ( echo -e "ERROR occurred while calculating background mutated rate, please check logs/cal_bmr_${processDay}.log\\n";exit -1)
+	else 
+		echo -e "[ smgFiles/gene_mrs ] already existed, please delete it if you want to re-run with new parameteres!"
+	fi
+	echo -e "[`date`]\\tFinished calculating background mutated rate ..."
+	startStep="smg"
+fi
+allDone bmr
+
+if [ $startStep = "smg" ];then
+	echo -e "[`date`]\\tBegin calculating the smg !"
+
+	if [ ! -s $output ];then
+		$music2 smg max-fdr $maxfdr  --gene-mr-file smgFiles/gene_mrs  --processors $thread --output-file result  >logs/smg_${processDay}.log   2>&1 \
+		|| ( echo -e "ERROR occurred while calculating smg, please check logs/smg_${processDay}.log\\n";exit -1)
+	else
+		echo -e "[ $output ] already existed, please delete it if you want to re-run with new parameteres!"
+	fi
+	echo -e "[`date`]\\tFinish calculating the smg !"
+fi
+allDone  smg
+

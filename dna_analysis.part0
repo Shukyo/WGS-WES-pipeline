@@ -1,0 +1,93 @@
+#!/bin/bash
+function echoHead(){   # print with bold and red font
+	echo -e "\033[1;31m$1\033[0m" 
+}
+
+function  echoInfo(){    # print $2 with orange font
+	echo -e "$1 [\033[33m $2\033[0m ]"
+}
+						
+function echoGreen(){  # print with green font
+	echo -e "\033[32m $1\033[0m\\c"
+}
+
+function echoRed(){  # print with red font
+	echo -e "\033[31m $1\033[0m\\c"	
+}
+function echoRG(){
+	tag=0;	
+	for i in "$@"
+	do
+		if [ $tag -eq "0" ];then 
+			echo -e "\033[1;31m $i \033[0m\\c"  
+			tag=1
+		else 
+			 echo -e "\033[32m $i \033[0m\\c" 
+			tag=0
+		fi
+	done
+}
+function defineRef(){
+	fastq_ref=($bwa_index_base $bwa)  
+	sortBam_ref=($picard $samtools)
+	markDup_ref=($picard $samtools)
+	arGrp_ref=($picard )
+	reAlign_ref=($gatk $reference $g1000 $mill $dbsnp)
+	varCall_ref=($gatk $reference $dbsnp)
+}
+
+
+function checkFile(){
+	if [ $verbose = "Yes" ];then 
+		echo -e "\033[1;3;34m-------------------------------------------\\n| File |\\t\\t\\t| Exist? |\\n-------------------------------------------\033[0m"
+	fi
+	if [ -z "$1" ]&&[ $verbose = "Yes" ];then echo -e "\\t\033[1;31mInput files missing!\033[0m";fi
+	for i in $@
+	do
+		if [ ! -e $i ];then 
+			if [ $verbose = "Yes" ];then 
+				echo -e "\\033[2;3m$i\033[0m\\t\033[1;31mNO\033[0m"
+				checkError=1
+			else
+				errorItems="$errorItems | `basename $i`"
+			fi
+		else if [ -e "$i" ]&&[ "$verbose" = "Yes" ];then
+			echo -e "\\033[2;3m$i\\t\033[0m\033[1;32mYES\033[0m"
+		fi;fi
+	done
+	if [ $verbose = "Yes" ];then
+		 echo -e "-------------------------------------------"
+	fi
+}
+function checkPara(){
+	if [ $verbose = "Yes" ];then
+		echo -e "\033[1;3;34m-------------------------------------------\\n| Paras |\\t\\t\\t| Defined? |\\n-------------------------------------------\033[0m"
+	fi
+	for i in $@
+	do
+		j=`eval echo \\$${i}`
+		if [ -z $j ];then
+			if [ $verbose = "Yes" ];then
+				echo -e "\033[2;3m$i     \033[0m\\t\\t\\t\033[1;31mNO\033[0m"
+				checkError=1
+			else
+				errorItems="$errorItems | $i"
+			fi
+		else if [ -n "$i" ]&&[ "$verbose" = "Yes" ];then
+			echo -e "\033[2;3m$i     \033[0m\\t\\t\\t\033[1;32mYES\033[0m"
+		fi;fi
+	done
+	if [ $verbose = "Yes" ];then
+		echo -e "-------------------------------------------"
+	fi
+}
+
+function delFile(){
+	if [ -s "$1" ]&&[ "$keepFile" = "No" ]&&[ $2 != $oriFile ];then rm $3;fi
+}
+
+function allDone(){
+	if [ $endStep = $1 ];then echo -e "All done!";exit 0; fi
+}
+
+

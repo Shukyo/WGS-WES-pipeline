@@ -1,0 +1,28 @@
+#!/bin/bash
+for i in "$@"; do if [[ $i = -* ]];then if [[ $i = --* ]];then tem=$tem"$i="; else tem=$tem" $i"; fi else tem=$tem"$i";fi done
+tem=($tem)
+temp=`getopt -qao i::n::a::b::s::e::t::f::cVvh --long input::,name::,normalBam::,tumorBam::,startStep::,endStep::,thread::,maxfdr::,check,verbose,version,help  -- "${tem[@]}"`
+eval set -- "$temp"
+while true;do case "$1" in
+	-i|--input)	case $2 in "") wrongpara="$wrongpara $1" && shift 2;; *)input=$2 && shift 2;;esac;;
+	-n|--name)	case $2 in "") wrongpara="$wrongpara $1" && shift 2;; *)name=$2 && shift 2;;esac;;
+	-s|--startStep)	case $2 in maf|covgs|bmr|smg)startStep=$2 && shift 2;; \
+			""|*)  wrongpara="$wrongpara $1" && shift 2;;esac;;
+	-e|--endStep)	case $2 in maf|covgs|bmr|smg)endStep=$2 && shift 2;; \
+			""|*)  wrongpara="$wrongpara $1" && shift 2;;esac;;
+	-a|--normalBam)	case $2 in "") wrongpara="$wrongpara $1" && shift 2;; *)normalBam=$2 && shift 2;;esac;;
+	-b|--tumorBam)	case $2 in "") wrongpara="$wrongpara $1" && shift 2;; *)tumorBam=$2 && shift 2;;esac;;
+	-l|--bamList)	case $2 in "") wrongpara="$wrongpara $1" && shift 2;; *)bamList=$2 && shift 2;;esac;;
+	-t|--thread)	case $2 in [1-6][0-9]|[1-9])thread=$2 && shift 2;; ""|*) wrongpara="$wrongpara $1" && shift 2;; esac;;
+	-f|--maxfdr)	case $2 in 1|0|0.*)maxfdr=$2 && shift 2;; ""|*) wrongpara="$wrongpara $1" && shift 2;; esac;;
+	-c|--check)	check="Yes"; shift;;
+	-V|--verbose)	verbose="Yes";shift;;
+	-v|--version)	printf '%s\n' " Version: $version"; exit 0;;
+	-h|--help)	printf '%s\n' "$help"; exit 0;;
+	--)shift;break;;
+esac
+done
+shift $((OPTIND - 1))
+
+
+defineRef

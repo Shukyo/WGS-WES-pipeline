@@ -206,7 +206,7 @@ $gatk  HaplotypeCaller \
 		 -ERC GVCF \
 		 --variant_index_type LINEAR \
 		 --variant_index_parameter 128000 >${sampleName}_${processDay}_haplotypeCaller.log 2>&1 \
-     || ( echo -e "ERROR occurred while call variants, please check $PWD/log/${sampleName}_${processDay}_UnifiedGenotyper.log\\n";exit -1)
+     || ( echo -e "ERROR occurred while call variants, please check $PWD/log/${sampleName}_${processDay}_HaplotypeCaller.log\\n";exit -1)
 fi
 
 	echo -e [`date`]\\tAnalysis completed, final output: $sampleName.g.vcf

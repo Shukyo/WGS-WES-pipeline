@@ -178,7 +178,7 @@ allDone arGrp
 	# 	-nct $thread > $PWD/log/${sampleName}_${processDay}_print.log 2>&1 \
 	# 	|| ( echo -e "ERROR occurred while printing reads , please check $PWD/log/${sampleName}_${processDay}_print.log\\n";exit -1)
 	# fi
-	$gatk
+	$gatk BQSRPipelineSpark  \
 	     --input $input \
 			 --output $sampleName.sorted.dedup.rg.recal.bam  \
 			 --known-sites $mill \

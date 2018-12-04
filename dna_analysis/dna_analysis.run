@@ -110,78 +110,80 @@ if [ $startStep = "arGrp" ];then
 fi
 allDone arGrp
 
-# Realigning  < NO realign in GATK4.0 >
-if [ $startStep = "reAlign" ];then
-	echo -e [`date`]\\tStart getting realignment target...
- #calculate the intervals
-	if [ ! -s ${sampleName}.realign.intervals  ];then
-	java -jar $gatkjar -T RealignerTargetCreator \
-		-R $reference \
-		-I $input \
-		-known $g1000 \
-		-known $mill \
-		-o $sampleName.realign.intervals \
-		-S LENIENT \
-		-nt $thread \
-		--filter_reads_with_N_cigar  > $PWD/log/${sampleName}_${processDay}_reTarget.log 2>&1 \
-	|| ( echo -e "ERROR occurred while realignment target, please check $PWD/log/${sampleName}_${processDay}_reTarget.log\\n";exit -1)
-	fi
+### NO need of realignment of indels where "The indel realignment tools have been retired from the best practices; they are unnecessary if you are using an assembly based caller like Mutect2 or HaplotypeCaller. Someone has proposed a port of those tools but we have not yet fully evaluated it."
 
-	echo -e [`date`]\\tFinished finding the realignment targets, starting realignment...
-
-  # realign the indels
-	if [ ! -s  ${sampleName}.sorted.dedup.realign.bam ];then
-	java -jar $gatkjar -T IndelRealigner \
-		-R $reference \
-		-I $input \
-		-targetIntervals $sampleName.realign.intervals \
-		-known $g1000 \
-		-known $mill \
-		-o $sampleName.sorted.dedup.realign.bam \
-		-S LENIENT  \
-		--filter_reads_with_N_cigar  > $PWD/log/${sampleName}_${processDay}_realign.log 2>&1 \
-		|| ( echo -e "ERROR occurred while realignment, please check $PWD/log/${sampleName}_${processDay}_realign.log\\n";exit -1)
-	fi
-
-	echo -e [`date`]\\tFinished indel realignment, starting BQS...
-	if [ ! -s $sampleName.recalibration_report.grp ];then
-
-		# recalibrate the base quality
-	java -jar $gatkjar -T BaseRecalibrator \
-		-R $reference \
-		-l INFO \
-		-I $sampleName.sorted.dedup.realign.bam \
-		-knownSites $mill \
-		-knownSites $g1000 \
-		-knownSites $dbsnp \
-		-o $sampleName.recalibration_report.grp \
-		-S LENIENT \
-		-allowPotentiallyMisencodedQuals \
-		-nct $thread > $PWD/log/$sampleName"_"$processDay"_"bqsr.log 2>&1 \
-		|| ( echo -e "ERROR occurred while BQSR, please check $PWD/log/${sampleName}_${processDay}_bqsr.log\\n";exit -1)
-	fi
-	echo -e [$currentTime]\\tFinished BQSR, start printing the reads...
-
-   # print out the recal reads
-	if [ ! -s $sampleName.sorted.dedup.realign.recal.bam ];then
-	java -jar $gatkjar -T PrintReads \
-		-R $reference \
-		-l INFO  \
-		-I $sampleName.sorted.dedup.realign.bam \
-		-BQSR $sampleName.recalibration_report.grp \
-		-o  $sampleName.sorted.dedup.realign.recal.bam  \
-		-S LENIENT  \
-		-nct $thread > $PWD/log/${sampleName}_${processDay}_print.log 2>&1 \
-		|| ( echo -e "ERROR occurred while printing reads , please check $PWD/log/${sampleName}_${processDay}_print.log\\n";exit -1)
-	fi
-
-	echo -e [`date`]\\tFinished recalibration bam file
-
-	delFile 
-	startStep="varCall"
-	input=$sampleName.sorted.dedup.realign.recal.bam
-fi
-allDone reAlign
+# # Realigning  < NO realign in GATK4.0 >
+# if [ $startStep = "reAlign" ];then
+# 	echo -e [`date`]\\tStart getting realignment target...
+#  #calculate the intervals
+# 	if [ ! -s ${sampleName}.realign.intervals  ];then
+# 	java -jar $gatkjar -T RealignerTargetCreator \
+# 		-R $reference \
+# 		-I $input \
+# 		-known $g1000 \
+# 		-known $mill \
+# 		-o $sampleName.realign.intervals \
+# 		-S LENIENT \
+# 		-nt $thread \
+# 		--filter_reads_with_N_cigar  > $PWD/log/${sampleName}_${processDay}_reTarget.log 2>&1 \
+# 	|| ( echo -e "ERROR occurred while realignment target, please check $PWD/log/${sampleName}_${processDay}_reTarget.log\\n";exit -1)
+# 	fi
+#
+# 	echo -e [`date`]\\tFinished finding the realignment targets, starting realignment...
+#
+#   # realign the indels
+# 	if [ ! -s  ${sampleName}.sorted.dedup.realign.bam ];then
+# 	java -jar $gatkjar -T IndelRealigner \
+# 		-R $reference \
+# 		-I $input \
+# 		-targetIntervals $sampleName.realign.intervals \
+# 		-known $g1000 \
+# 		-known $mill \
+# 		-o $sampleName.sorted.dedup.realign.bam \
+# 		-S LENIENT  \
+# 		--filter_reads_with_N_cigar  > $PWD/log/${sampleName}_${processDay}_realign.log 2>&1 \
+# 		|| ( echo -e "ERROR occurred while realignment, please check $PWD/log/${sampleName}_${processDay}_realign.log\\n";exit -1)
+# 	fi
+#
+# 	echo -e [`date`]\\tFinished indel realignment, starting BQS...
+# 	if [ ! -s $sampleName.recalibration_report.grp ];then
+#
+# 		# recalibrate the base quality
+# 	java -jar $gatkjar -T BaseRecalibrator \
+# 		-R $reference \
+# 		-l INFO \
+# 		-I $sampleName.sorted.dedup.realign.bam \
+# 		-knownSites $mill \
+# 		-knownSites $g1000 \
+# 		-knownSites $dbsnp \
+# 		-o $sampleName.recalibration_report.grp \
+# 		-S LENIENT \
+# 		-allowPotentiallyMisencodedQuals \
+# 		-nct $thread > $PWD/log/$sampleName"_"$processDay"_"bqsr.log 2>&1 \
+# 		|| ( echo -e "ERROR occurred while BQSR, please check $PWD/log/${sampleName}_${processDay}_bqsr.log\\n";exit -1)
+# 	fi
+# 	echo -e [$currentTime]\\tFinished BQSR, start printing the reads...
+#
+#    # print out the recal reads
+# 	if [ ! -s $sampleName.sorted.dedup.realign.recal.bam ];then
+# 	java -jar $gatkjar -T PrintReads \
+# 		-R $reference \
+# 		-l INFO  \
+# 		-I $sampleName.sorted.dedup.realign.bam \
+# 		-BQSR $sampleName.recalibration_report.grp \
+# 		-o  $sampleName.sorted.dedup.realign.recal.bam  \
+# 		-S LENIENT  \
+# 		-nct $thread > $PWD/log/${sampleName}_${processDay}_print.log 2>&1 \
+# 		|| ( echo -e "ERROR occurred while printing reads , please check $PWD/log/${sampleName}_${processDay}_print.log\\n";exit -1)
+# 	fi
+#
+# 	echo -e [`date`]\\tFinished recalibration bam file
+#
+# 	delFile
+# 	startStep="varCall"
+# 	input=$sampleName.sorted.dedup.realign.recal.bam
+# fi
+# allDone reAlign
 
 # call variants
 if [ $startStep = "varCall" ];then
@@ -199,7 +201,7 @@ if [ $startStep = "varCall" ];then
 	#samtools mpileup -gf $reference  $input -o $sampleName.raw.snps.indels.vcf > $PWD/log/sampleName"_"$processDay"_"SamtoolsMpileup.log 2>&1 || ( echo -e     "ERROR occurred while call variants, please check $PWD/log/${sampleName}_${processDay}_SamtoolsMpileup.log\\n";exit -1)
 $gatk  HaplotypeCaller \
      -R $reference \
-		 -I $sampleName.sorted.dedup.realign.recal.bam \
+		 -I $input \
 		 -o $sampleName.g.vcf  \
 		 -ERC GVCF \
 		 --variant_index_type LINEAR \

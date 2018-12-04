@@ -8,11 +8,11 @@ if [ ! -z "$wrongpara" ];then error="$error \033[1;31m$wrongpara: \033[0mNull/wr
 if [ "$error" ]&&[ "check" = "No" ];then echo -e $error; exit -1;fi
 
 # obtain the included steps
-if [ "$species" = "human" ];then
-	allSteps=(fastq sortBam markDup arGrp reAlign varCall);
-else
+# if [ "$species" = "human" ];then
+# 	allSteps=(fastq sortBam markDup arGrp reAlign varCall);
+# else
 	allSteps=(fastq sortBam markDup arGrp varCall);
-fi
+#fi
 
 x=0
 checkStepOrder=0

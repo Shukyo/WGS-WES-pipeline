@@ -10,7 +10,7 @@ Sample Information:
 	-w|--wkdir		Working directory		[ default: '$wkdir' ]
 	-k|--platform		Sequencing platform		[ default: '$platform' ]
 	-l|--library		Sequencing Library		[ default: '$library' ]
-	-I|--sampleID		SampleID(unique for each sample)	
+	-I|--sampleID		SampleID(unique for each sample)
 genomics:
 	-W|--species		Species of data ( human|mouse|zebrafish )
 									[ default: '$species' ]
@@ -36,4 +36,3 @@ Usage:    1) '`basename $0`' [options] -1 <Read1> -2 <Read2> -n <Sample Name>
 	  2) '`basename $0`' [options] -n <Sample Name> -s <Star Step> -e <End Step> -i <Bam File>
 	  3) '`basename $0`' -s <Star Step> -e <End Step> -c
 '
-

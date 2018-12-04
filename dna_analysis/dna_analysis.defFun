@@ -40,7 +40,8 @@ function defineRef(){
 	sortBam_ref=($picard $samtools)
 	markDup_ref=($picard $samtools)
 	arGrp_ref=($picard )
-	reAlign_ref=($gatk $reference $g1000 $mill $dbsnp)
+## remove reAlign in gatk4
+#	reAlign_ref=($gatk $reference $g1000 $mill $dbsnp)
 	varCall_ref=($gatk $reference $dbsnp)
 }
 

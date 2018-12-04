@@ -29,15 +29,17 @@ picard="/software/GATK/picard.jar"
 reference="/database/ref/hg19.fa"
 bwa_index_base="/database/iGenome/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/genome.fa"
 dbsnp="/database/GATK/hg19/db142.hg19.vcf"
-g1000="/database/GATK/hg19/1000G_phase1.indels.hg19.sites.vcf"
-mill="/database/GATK/hg19/Mills_and_1000G_gold_standard.indels.hg19.sites.vcf"
+# remove reAlign in gatk4
+#g1000="/database/GATK/hg19/1000G_phase1.indels.hg19.sites.vcf"
+#mill="/database/GATK/hg19/Mills_and_1000G_gold_standard.indels.hg19.sites.vcf"
 
 # human - hg38
 reference_hg38="/database/ref/hg38.fa"
 bwa_index_base_hg38="/database/iGenome/Homo_sapiens/UCSC/hg38/Sequence/BWAIndex/genome"
 dbsnp_hg38="/database/GATK/hg38/db142.hg38.vcf"
-g1000_hg38="/database/GATK/hg38/Homo_sapiens_assembly38.known_indels.vcf"
-mill_hg38="/database/GATK/hg38/Mills_and_1000G_gold_standard.indels.hg38.vcf"
+# remove reAlign in gatk4
+# g1000_hg38="/database/GATK/hg38/Homo_sapiens_assembly38.known_indels.vcf"
+# mill_hg38="/database/GATK/hg38/Mills_and_1000G_gold_standard.indels.hg38.vcf"
 
 # mouse - mm10
 reference_mm10="/database/ref/mm10.fa"

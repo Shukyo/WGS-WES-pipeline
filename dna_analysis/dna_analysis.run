@@ -200,9 +200,9 @@ if [ $startStep = "varCall" ];then
 		# || ( echo -e "ERROR occurred while call variants, please check $PWD/log/${sampleName}_${processDay}_UnifiedGenotyper.log\\n";exit -1)
 	#samtools mpileup -gf $reference  $input -o $sampleName.raw.snps.indels.vcf > $PWD/log/sampleName"_"$processDay"_"SamtoolsMpileup.log 2>&1 || ( echo -e     "ERROR occurred while call variants, please check $PWD/log/${sampleName}_${processDay}_SamtoolsMpileup.log\\n";exit -1)
 $gatk  HaplotypeCaller \
-     -R $reference \
-		 -I $input \
-		 -o $sampleName.g.vcf  \
+     --reference $reference \
+		 --input $input \
+		 --output $sampleName.g.vcf  \
 		 -ERC GVCF \
 		 --variant_index_type LINEAR \
 		 --variant_index_parameter 128000 >${sampleName}_${processDay}_haplotypeCaller.log 2>&1 \

@@ -27,7 +27,7 @@ if [ $# -eq "1" ]&&[ $@ = "--" ];then
 	echo -e   "\\n3) rna_analysis.sh\\c"
 	echoRG    '-s' '<Star Step>' '-e' '<End Step>' '-c'
 	echoHead  "\\n=> Steps:\\n========================================================"
-	echoRG    "|" fastq '|'  sortBam '|' markDup '|' arGrp '|' varCall '|'
+	echoRG    "|" fastq '|'  sortBam '|' markDup '|' arGrp '|'  reCal '|' varCall '|'
 	echoHead  "\\n=> Supported Genome:\\n========================================================"
 	echoRG    "|" human '|' mouse  '|' zebrafish '|'
 	echo -e "\\n"
@@ -47,7 +47,7 @@ while true;do case "$1" in
 	-t|--thread)            case $2 in [1-6][0-9]|[1-9])thread=$2 && shift 2;; ""|*) wrongpara="$wrongpara $1" && shift 2;; esac;;
 	-s|--startStep)         case $2 in fastq|sortBam|markDup|arGrp|varCall)startStep=$2 && shift 2;; \
 				""|*)  wrongpara="$wrongpara $1" && shift 2;;esac;;
-	-e|--endStep)           case $2 in fastq|sortBam|markDup|arGrp|varCall)endStep=$2 && shift 2;; \
+	-e|--endStep)           case $2 in fastq|sortBam|markDup|arGrp|reCal|varCall)endStep=$2 && shift 2;; \
 				""|*)wrongpara="$wrongpara $1" && shift 2;;esac;;
 	-S|--species)           case $2 in human|mouse|zebrafish)species=$2 && shift 2;; \
 				""|*)wrongpara="$wrongpara $1" && shift 2;;esac;;
@@ -81,9 +81,9 @@ if [ "$species" != "human" ]||[ $gBuild != "hg19" ];then
 	bwa_index_base=`eval echo "\\$bwa_index_base_${gBuild}"`
 	star_index_dir=`eval echo "\\$star_index_dir_${gBuild}"`
 	tophat_index_dir=`eval echo "\\$tophat_index_dir_${gBuild}"`
-  ## remove reAlign in gatk4
-	#g1000=`eval echo "\\$g1000_${gBuild}"`
-	#mill=`eval echo "\\$mill_${gBuild}"`
+
+	g1000=`eval echo "\\$g1000_${gBuild}"`
+	mill=`eval echo "\\$mill_${gBuild}"`
 	dbsnp=`eval echo "\\$dbsnp_${gBuild}"`
 fi
 

@@ -32,7 +32,7 @@ if [ $startStep = "sortBam" ];then
 	 || (echo -e "ERROR occurred while sorting bam file, please check $PWD/log/${sampleName}_${processDay}_sort.log\\n";exit -1)
 
 	echo -e [`date`]\\tFinished sorting and indexing
-	delFile $sampleName.sorted.bam   $input  $input
+	delFile
 	startStep="markDup"
 	input=$sampleName.sorted.bam
 fi
@@ -66,7 +66,7 @@ if [ $startStep = "markDup" ];then
 		|| ( echo -e "ERROR occurred while marking duplication, please check $PWD/log/${sampleName}_${processDay}_dedup.log\\n";exit -1)
 
 	echo -e [`date`]\\tFinished mark duplication
-	delFile $sampleName.sorted.dedup.bam   $input  $input
+	delFile
 	startStep="arGrp"
 	input=$sampleName.sorted.dedup.bam
 fi
@@ -103,7 +103,7 @@ if [ $startStep = "arGrp" ];then
 					--CREATE_INDEX  > "$PWD/log/${sampleName}_${processDay}_readgroup.log"  2>&1 \
 					|| ( echo -e "ERROR occurred while adding group, please check $PWD/log/${sampleName}_${processDay}_readgroup.log\\n";exit -1)
 
-	delFile $sampleName.sorted.dedup.rg.bam    $input  "`basename $input .bam`.bai  $input"
+	delFile
 	echo -e [`date`]\\tFinished removing duplication
 	startStep "reAlign"
 	input=$sampleName.sorted.dedup.rg.bam
@@ -177,7 +177,7 @@ if [ $startStep = "reAlign" ];then
 
 	echo -e [`date`]\\tFinished recalibration bam file
 
-	delFile $sampleName.sorted.dedup.realign.recal.bam  $input "$input `basename $input .bam`.bai $sampleName.realign.intervals $sampleName.sorted.dedup.realign.bam  $sampleName.sorted.dedup.realign.bai  $sampleName.recalibration_report.grp"
+	delFile 
 	startStep="varCall"
 	input=$sampleName.sorted.dedup.realign.recal.bam
 fi

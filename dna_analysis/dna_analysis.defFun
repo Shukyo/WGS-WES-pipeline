@@ -94,7 +94,12 @@ function checkPara(){
 
 # delete temportial files
 function delFile(){
-	if [ -s "$1" ]&&[ "$keepFile" = "No" ]&&[ $2 != $oriFile ];then rm $3;fi
+	if [ -s "$output" ]&&[ "$keepFile" = "No" ]&&[ "$input" != "$oriFile" ];then rm $input;fi
+	if [ -s "$output" ]&&[ "$keepFile" = "No" ]&&[ "$input" != "$oriFile" ]&&[ -s "`basename $input .bam`.bai" ];then rm `basename $input .bam`.bai; fi
+  # delete those files where
+	# 1. option choses don't keep files;
+	# 2. the output file is not empty;
+	# 3. not the input files at beginning;
 }
 
 # defined the last step

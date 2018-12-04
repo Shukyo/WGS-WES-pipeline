@@ -145,9 +145,11 @@ allDone arGrp
 # 		|| ( echo -e "ERROR occurred while realignment, please check $PWD/log/${sampleName}_${processDay}_realign.log\\n";exit -1)
 # 	fi
 #
-	echo -e [`date`]\\tStarting RBQS...
-	if [ ! -s $sampleName.sorted.dedup.rg.recal.bam ];then
+ if [ $startStep = "reCal" ];then
 
+	echo -e [`date`]\\tStarting RBQS...
+
+	if [ ! -s $sampleName.sorted.dedup.rg.recal.bam ];then
 		# recalibrate the base quality
 	# java -jar $gatkjar -T BaseRecalibrator \
 	# 	-R $reference \
@@ -176,8 +178,6 @@ allDone arGrp
 	# 	-nct $thread > $PWD/log/${sampleName}_${processDay}_print.log 2>&1 \
 	# 	|| ( echo -e "ERROR occurred while printing reads , please check $PWD/log/${sampleName}_${processDay}_print.log\\n";exit -1)
 	# fi
-
-
 	$gatk
 	     --input $input \
 			 --output $sampleName.sorted.dedup.rg.recal.bam  \
@@ -186,8 +186,7 @@ allDone arGrp
 			 --known-sites $dbsnp \
 			 --reference $reference  > $PWD/log/${sampleName}_${processDay}_recal.log 2>&1 \
 			 | ( echo -e "ERROR occurred while recalibrate , please check $PWD/log/${sampleName}_${processDay}_recal.log\\n";exit -1)
-
-
+	fi
 	echo -e [`date`]\\tFinished recalibration bam file
 	## should not delete the final BAM files
 	#delFile

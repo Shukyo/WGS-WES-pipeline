@@ -45,7 +45,7 @@ while true;do case "$1" in
 	-I|--sampleID)          case $2 in "")  wrongpara="$wrongpara $1" && shift 2;; *)id=$2 && shift 2;;esac;;
 	-M|--method)            case $2 in bwa|speedseq) method=$2 && shift 2;; ""|*) wrongpara="$wrongpara $1" && shift 2;;esac;;
 	-t|--thread)            case $2 in [1-6][0-9]|[1-9])thread=$2 && shift 2;; ""|*) wrongpara="$wrongpara $1" && shift 2;; esac;;
-	-s|--startStep)         case $2 in fastq|sortBam|markDup|arGrp|varCall)startStep=$2 && shift 2;; \
+	-s|--startStep)         case $2 in fastq|sortBam|markDup|arGrp|reCal|varCall)startStep=$2 && shift 2;; \
 				""|*)  wrongpara="$wrongpara $1" && shift 2;;esac;;
 	-e|--endStep)           case $2 in fastq|sortBam|markDup|arGrp|reCal|varCall)endStep=$2 && shift 2;; \
 				""|*)wrongpara="$wrongpara $1" && shift 2;;esac;;

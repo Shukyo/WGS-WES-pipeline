@@ -105,7 +105,7 @@ if [ $startStep = "arGrp" ];then
 
 	delFile
 	echo -e [`date`]\\tFinished removing duplication
-	startStep "reAlign"
+	startStep "reCal"
 	input=$sampleName.sorted.dedup.rg.bam
 fi
 allDone arGrp
@@ -194,7 +194,7 @@ allDone arGrp
 	startStep="varCall"
 	input=$sampleName.sorted.dedup.rg.recal.bam
 fi
-allDone reAlign
+allDone reCal
 
 # call variants
 if [ $startStep = "varCall" ];then

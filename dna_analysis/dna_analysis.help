@@ -17,11 +17,11 @@ genomics:
 	-B|--gBuild		Build version for genome		[ default: '$gBuild' ]
 Misc:
 	-M|--method		Method for alignment( star|tophat )	[ default: '$method' ]
-	-t|--thread		Number of threads used in align | realign steps
+	-t|--thread		Number of threads used in recal steps
 									[ default: '$thread' ]
-	-s|--startStep		The first step to process ( fastq|sortBam|markDup|arGrp|reAlign|varCall )
+	-s|--startStep		The first step to process ( fastq|sortBam|markDup|arGrp|reCal|varCall )
 									[ default: '$startStep' ]
-	-e|--endStep		The final step of process ( fastq|sortBam|markDup|arGrp|reAlign|varCall )
+	-e|--endStep		The final step of process ( fastq|sortBam|markDup|arGrp|reCal|varCall )
 									[ default: '$endStep' ]
 	-K|--keepFile		Whether keep the intermediate file	[ default: '$keepFile' ]
 	-c|--check		check the references			[ default: '$check' ]

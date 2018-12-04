@@ -149,44 +149,26 @@ allDone arGrp
 
 	echo -e [`date`]\\tStarting RBQS...
 
-	if [ ! -s $sampleName.sorted.dedup.rg.recal.bam ];then
+   if [ ! -s $sampleName.recal_data.table ];then
 		# recalibrate the base quality
-	# java -jar $gatkjar -T BaseRecalibrator \
-	# 	-R $reference \
-	# 	-l INFO \
-	# 	-I $sampleName.sorted.dedup.realign.bam \
-	# 	-knownSites $mill \
-	# 	-knownSites $g1000 \
-	# 	-knownSites $dbsnp \
-	# 	-o $sampleName.recalibration_report.grp \
-	# 	-S LENIENT \
-	# 	-allowPotentiallyMisencodedQuals \
-	# 	-nct $thread > $PWD/log/$sampleName"_"$processDay"_"bqsr.log 2>&1 \
-	# 	|| ( echo -e "ERROR occurred while BQSR, please check $PWD/log/${sampleName}_${processDay}_bqsr.log\\n";exit -1)
-	# fi
-	# echo -e [$currentTime]\\tFinished BQSR, start printing the reads...
-	#
-  #  # print out the recal reads
-	# if [ ! -s $sampleName.sorted.dedup.realign.recal.bam ];then
-	# java -jar $gatkjar -T PrintReads \
-	# 	-R $reference \
-	# 	-l INFO  \
-	# 	-I $sampleName.sorted.dedup.realign.bam \
-	# 	-BQSR $sampleName.recalibration_report.grp \
-	# 	-o  $sampleName.sorted.dedup.realign.recal.bam  \
-	# 	-S LENIENT  \
-	# 	-nct $thread > $PWD/log/${sampleName}_${processDay}_print.log 2>&1 \
-	# 	|| ( echo -e "ERROR occurred while printing reads , please check $PWD/log/${sampleName}_${processDay}_print.log\\n";exit -1)
-	# fi
-	$gatk BQSRPipelineSpark  \
+    $gatk BaseRecalibrator \
+      --input $input \
+      --reference $reference \
+	  	--known-sites $mill \
+	  	--known-sites $g1000 \
+	  	--known-sites $dbsnp \
+      --output $sampleName.recal_data.table  > $PWD/log/${sampleName}_${processDay}_recal.log 2>&1 \
+	  	|| ( echo -e "ERROR occurred while recalibrate , please check $PWD/log/${sampleName}_${processDay}_recal.log\\n";exit -1)
+		fi
+    if [ ! -s $sampleName.sorted.dedup.rg.recal.bam ];then
+    $gatk ApplyBQSR \
+	     --reference $reference \
 	     --input $input \
-			 --output $sampleName.sorted.dedup.rg.recal.bam  \
-			 --known-sites $mill \
-			 --known-sites $g1000 \
-			 --known-sites $dbsnp \
-			 --reference $reference  > $PWD/log/${sampleName}_${processDay}_recal.log 2>&1 \
-			 | ( echo -e "ERROR occurred while recalibrate , please check $PWD/log/${sampleName}_${processDay}_recal.log\\n";exit -1)
-	fi
+	     --bqsr-recal-file $sampleName.recal_data.table  \
+	     --output $sampleName.sorted.dedup.rg.recal.bam > $PWD/log/${sampleName}_${processDay}_applybqsr.log 2>&1 \
+		   || ( echo -e "ERROR occurred while applying BQSR , please check $PWD/log/${sampleName}_${processDay}_applybqsr.log\\n";exit -1)
+	  fi
+
 	echo -e [`date`]\\tFinished recalibration bam file
 	## should not delete the final BAM files
 	#delFile

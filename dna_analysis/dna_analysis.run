@@ -182,22 +182,13 @@ if [ $startStep = "varCall" ];then
 	echo -e [`date`]\\tStart HaplotypeCaller...
 
 	if [ ! -s $sampleName.g.vcf ];then
-	# java -jar $gatk -T UnifiedGenotyper \
-		# -glm BOTH \
-		# -R $reference \
-		# -slod \
-		# -I $input \
-		# --dbsnp $dbsnp \
-		# -o $sampleName.raw.snps.indels.g.vcf  >${sampleName}_${processDay}_UnifiedGenotyper.log 2>&1 \
-		# || ( echo -e "ERROR occurred while call variants, please check $PWD/log/${sampleName}_${processDay}_UnifiedGenotyper.log\\n";exit -1)
-	#samtools mpileup -gf $reference  $input -o $sampleName.raw.snps.indels.vcf > $PWD/log/sampleName"_"$processDay"_"SamtoolsMpileup.log 2>&1 || ( echo -e     "ERROR occurred while call variants, please check $PWD/log/${sampleName}_${processDay}_SamtoolsMpileup.log\\n";exit -1)
-$gatk  HaplotypeCaller \
-     --reference $reference \
-		 --input $input \
-		 --output $sampleName.g.vcf  \
-		 -ERC GVCF \
-		 --native-pair-hmm-threads $thread  >${sampleName}_${processDay}_haplotypeCaller.log 2>&1 \
-     || ( echo -e "ERROR occurred while call variants, please check $PWD/log/${sampleName}_${processDay}_HaplotypeCaller.log\\n";exit -1)
+			$gatk  HaplotypeCaller \
+     		--reference $reference \
+		 		--input $input \
+		 		--output $sampleName.g.vcf  \
+		 		-ERC GVCF \
+		 		--native-pair-hmm-threads $thread  >${sampleName}_${processDay}_haplotypeCaller.log 2>&1 \
+     		|| ( echo -e "ERROR occurred while call variants, please check $PWD/log/${sampleName}_${processDay}_HaplotypeCaller.log\\n";exit -1)
 fi
 
 	echo -e [`date`]\\tAnalysis completed, final output: $sampleName.g.vcf

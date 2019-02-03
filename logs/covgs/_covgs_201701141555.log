@@ -1,9 +1,0 @@
-[bam_header_read] EOF marker is absent. The input is probably truncated.
-[bam_header_read] invalid BAM binary header (this is not a BAM file).
-[bam_index_load] fail to load BAM index.
-BAM index file is not available for /software/calcRoiCovg/data/all_coding_exons.tsv
-[bam_header_read] EOF marker is absent. The input is probably truncated.
-[bam_header_read] invalid BAM binary header (this is not a BAM file).
-[bam_index_load] fail to load BAM index.
-BAM index file is not available for /database/ref/hg19.fa
-Failed to open ROI file smgFiles/roi_covgs/T.covg
